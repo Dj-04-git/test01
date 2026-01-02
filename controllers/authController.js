@@ -55,6 +55,28 @@ export const verifyOtp = (req, res) => {
   );
 };
 
+// RESEND OTP
+export const resendOtp = (req, res) => {
+  const { email } = req.body;
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  db.run(
+    "UPDATE users SET otp=? WHERE email=?",
+    [otp, email],
+    function (err) {
+      if (err) return res.status(400).json({ message: "User not found" });
+
+      transporter.sendMail({
+        to: email,
+        subject: "OTP Verification",
+        text: `Your OTP is ${otp}`
+      });
+
+      res.json({ message: "OTP resent successfully" });
+    }
+  );
+};
+
 // LOGIN
 export const login = (req, res) => {
   const { email, password } = req.body;
@@ -66,7 +88,7 @@ export const login = (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ error: "Invalid password" });
 
-   const token = jwt.sign(
+  const token = jwt.sign(
   { id: user.id },
   config.JWT_SECRET,
   { expiresIn: "1h" }

@@ -25,27 +25,27 @@ app.use("/api/auth", authRoutes);
 
 // Serve pages
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "pages", "login.html"));
+  res.sendFile(path.join(__dirname, "pages", "login.html"));
 });
 
 app.get("/login", (req, res) => {
-    res.sendFile(path.join(__dirname, "pages", "login.html"));
+  res.sendFile(path.join(__dirname, "pages", "login.html"));
 });
 
 app.get("/register", (req, res) => {
-    res.sendFile(path.join(__dirname, "pages", "register.html"));
+  res.sendFile(path.join(__dirname, "pages", "register.html"));
 });
 
 app.get("/verify-otp", (req, res) => {
-    res.sendFile(path.join(__dirname, "pages", "verify-otp.html"));
+  res.sendFile(path.join(__dirname, "pages", "verify-otp.html"));
 });
 
 app.get("/forgot-password", (req, res) => {
-    res.sendFile(path.join(__dirname, "pages", "forgot-password.html"));
+  res.sendFile(path.join(__dirname, "pages", "forgot-password.html"));
 });
 
 app.get("/reset-password", (req, res) => {
-    res.sendFile(path.join(__dirname, "pages", "reset-password.html"));
+  res.sendFile(path.join(__dirname, "pages", "reset-password.html"));
 });
 
 app.get("/dashboard", (req, res) => {
@@ -53,5 +53,5 @@ app.get("/dashboard", (req, res) => {
 });
 
 app.listen(5000, () => {
-    console.log("Server running on port 5000");
+  console.log("Server running on port 5000");
 });

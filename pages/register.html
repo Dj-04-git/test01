@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1 class="form-title">Register</h1>
+    
+    <div class="success-message" id="successMessage"></div>
+    
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          placeholder="Enter your full name" 
+          required
+        >
+        <div class="error-message" id="nameError"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          placeholder="Enter your email" 
+          required
+        >
+        <div class="error-message" id="emailError"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          placeholder="Enter a strong password" 
+          required
+        >
+        <div class="error-message" id="passwordError"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input 
+          type="password" 
+          id="confirmPassword" 
+          name="confirmPassword" 
+          placeholder="Confirm your password" 
+          required
+        >
+        <div class="error-message" id="confirmPasswordError"></div>
+      </div>
+
+      <button type="submit">Register</button>
+    </form>
+
+    <div class="form-footer">
+      Already have an account? <a href="login.html">Login here</a>
+    </div>
+  </div>
+
+  <script>
+    const registerForm = document.getElementById('registerForm');
+    const successMessage = document.getElementById('successMessage');
+    const nameError = document.getElementById('nameError');
+    const emailError = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    const confirmPasswordError = document.getElementById('confirmPasswordError');
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Clear previous errors
+      nameError.classList.remove('show');
+      emailError.classList.remove('show');
+      passwordError.classList.remove('show');
+      confirmPasswordError.classList.remove('show');
+      successMessage.classList.remove('show');
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      // Client-side validation
+      if (password !== confirmPassword) {
+        confirmPasswordError.textContent = 'Passwords do not match';
+        confirmPasswordError.classList.add('show');
+        return;
+      }
+
+      if (password.length < 6) {
+        passwordError.textContent = 'Password must be at least 6 characters';
+        passwordError.classList.add('show');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name, email, password }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          successMessage.textContent = 'Registration successful! Redirecting to OTP verification...';
+          successMessage.classList.add('show');
+          sessionStorage.setItem('registerEmail', email);
+          setTimeout(() => {
+            window.location.href = '/verify-otp';
+          }, 1500);
+        } else {
+          if (data.message.includes('email')) {
+            emailError.textContent = data.message;
+            emailError.classList.add('show');
+          } else if (data.message.includes('password')) {
+            passwordError.textContent = data.message;
+            passwordError.classList.add('show');
+          } else if (data.message.includes('name')) {
+            nameError.textContent = data.message;
+            nameError.classList.add('show');
+          } else {
+            alert(data.message);
+          }
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+      }
+    });
+  </script>
+</body>
+</html>

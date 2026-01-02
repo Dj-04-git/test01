@@ -4,13 +4,21 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import { config } from "../config.js";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: config.EMAIL,
-    pass: config.EMAIL_PASS
+let transporter;
+
+// Initialize transporter after config is loaded
+const initializeTransporter = () => {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: config.EMAIL,
+        pass: config.EMAIL_PASS
+      }
+    });
   }
-});
+  return transporter;
+};
 
 // REGISTER
 export const register = async (req, res) => {
@@ -24,7 +32,7 @@ export const register = async (req, res) => {
     function (err) {
       if (err) return res.status(400).json({ error: "User already exists" });
 
-      transporter.sendMail({
+      initializeTransporter().sendMail({
         to: email,
         subject: "OTP Verification",
         text: `Your OTP is ${otp}`
@@ -66,7 +74,7 @@ export const resendOtp = (req, res) => {
     function (err) {
       if (err) return res.status(400).json({ message: "User not found" });
 
-      transporter.sendMail({
+      initializeTransporter().sendMail({
         to: email,
         subject: "OTP Verification",
         text: `Your OTP is ${otp}`
@@ -104,7 +112,7 @@ export const forgotPassword = (req, res) => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
   db.run("UPDATE users SET otp=? WHERE email=?", [otp, email], function () {
-    transporter.sendMail({
+    initializeTransporter().sendMail({
       to: email,
       subject: "Reset Password OTP",
       text: `Your OTP is ${otp}`

@@ -1,104 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <div class="container">
-    <h1 class="form-title">Login</h1>
-    
-    <div class="success-message" id="successMessage"></div>
-    
-    <form id="loginForm">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input 
-          type="email" 
-          id="email" 
-          name="email" 
-          placeholder="Enter your email" 
-          required
-        >
-        <div class="error-message" id="emailError"></div>
-      </div>
+    <div class="container">
+        <h1 class="form-title">Login</h1>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input 
-          type="password" 
-          id="password" 
-          name="password" 
-          placeholder="Enter your password" 
-          required
-        >
-        <div class="error-message" id="passwordError"></div>
-        <div style="text-align: right; margin-top: 8px;">
-          <a href="/forgot-password" style="color: #667eea; text-decoration: none; font-size: 13px; font-weight: 500;">Forgot Password?</a>
+        <div class="success-message" id="successMessage"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                <div class="error-message" id="emailError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                <div class="error-message" id="passwordError"></div>
+                <div style="text-align: right; margin-top: 8px;">
+                    <a href="/forgot-password"
+                        style="color: #667eea; text-decoration: none; font-size: 13px; font-weight: 500;">Forgot
+                        Password?</a>
+                </div>
+            </div>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="form-footer">
+            Don't have an account? <a href="/register">Register here</a>
         </div>
-      </div>
-
-      <button type="submit">Login</button>
-    </form>
-
-    <div class="form-footer">
-      Don't have an account? <a href="/register">Register here</a>
     </div>
-  </div>
 
-  <script>
-    const loginForm = document.getElementById('loginForm');
-    const successMessage = document.getElementById('successMessage');
-    const emailError = document.getElementById('emailError');
-    const passwordError = document.getElementById('passwordError');
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const successMessage = document.getElementById('successMessage');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
 
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-      // Clear previous errors
-      emailError.classList.remove('show');
-      passwordError.classList.remove('show');
-      successMessage.classList.remove('show');
+            // Clear previous errors
+            emailError.classList.remove('show');
+            passwordError.classList.remove('show');
+            successMessage.classList.remove('show');
 
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
-      try {
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({email, password}),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successMessage.textContent = 'Login successful! Redirecting...';
+                    successMessage.classList.add('show');
+                    localStorage.setItem('token', data.token);
+                    setTimeout(() => {
+                        window.location.href = '/dashboard'; // Redirect to dashboard
+                    }, 1500);
+                } else {
+                    if (data.message.includes('email')) {
+                        emailError.textContent = data.message;
+                        emailError.classList.add('show');
+                    } else if (data.message.includes('password')) {
+                        passwordError.textContent = data.message;
+                        passwordError.classList.add('show');
+                    } else {
+                        alert(data.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          successMessage.textContent = 'Login successful! Redirecting...';
-          successMessage.classList.add('show');
-          localStorage.setItem('token', data.token);
-          setTimeout(() => {
-            window.location.href = '/dashboard'; // Redirect to dashboard
-          }, 1500);
-        } else {
-          if (data.message.includes('email')) {
-            emailError.textContent = data.message;
-            emailError.classList.add('show');
-          } else if (data.message.includes('password')) {
-            passwordError.textContent = data.message;
-            passwordError.classList.add('show');
-          } else {
-            alert(data.message);
-          }
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again.');
-      }
-    });
-  </script>
+    </script>
 </body>
+
 </html>

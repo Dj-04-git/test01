@@ -1,5 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 export const config = {
-JWT_SECRET:"your_jwt_secret",
-EMAIL:"shreyagaikwad107@gmail.com",
-EMAIL_PASS:"xpna yzaz shwe ktge"
+  JWT_SECRET: process.env.JWT_SECRET,
+  EMAIL: process.env.EMAIL,
+  EMAIL_PASS: process.env.EMAIL_PASS
 };

@@ -1,0 +1,5 @@
+export const config = {
+JWT_SECRET:"your_jwt_secret",
+EMAIL:"shreyagaikwad107@gmail.com",
+EMAIL_PASS:"xpna yzaz shwe ktge"
+};

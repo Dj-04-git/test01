@@ -1,0 +1,114 @@
+import db from "../db.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
+import { config } from "../config.js";
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: config.EMAIL,
+    pass: config.EMAIL_PASS
+  }
+});
+
+// REGISTER
+export const register = async (req, res) => {
+  const { name, email, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  db.run(
+    "INSERT INTO users (name, email, password, otp) VALUES (?, ?, ?, ?)",
+    [name, email, hashedPassword, otp],
+    function (err) {
+      if (err) return res.status(400).json({ error: "User already exists" });
+
+      transporter.sendMail({
+        to: email,
+        subject: "OTP Verification",
+        text: `Your OTP is ${otp}`
+      });
+
+      res.json({ message: "Registered successfully. Verify OTP." });
+    }
+  );
+};
+
+// VERIFY OTP
+export const verifyOtp = (req, res) => {
+  const { email, otp } = req.body;
+
+  db.get(
+    "SELECT * FROM users WHERE email=? AND otp=?",
+    [email, otp],
+    (err, user) => {
+      if (!user) return res.status(400).json({ error: "Invalid OTP" });
+
+      db.run(
+        "UPDATE users SET isVerified=1, otp=NULL WHERE email=?",
+        [email]
+      );
+
+      res.json({ message: "Account verified successfully" });
+    }
+  );
+};
+
+// LOGIN
+export const login = (req, res) => {
+  const { email, password } = req.body;
+
+  db.get("SELECT * FROM users WHERE email=?", [email], async (err, user) => {
+    if (!user) return res.status(400).json({ error: "User not found" });
+    if (!user.isVerified) return res.status(403).json({ error: "Verify OTP first" });
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(400).json({ error: "Invalid password" });
+
+   const token = jwt.sign(
+  { id: user.id },
+  config.JWT_SECRET,
+  { expiresIn: "1h" }
+);
+
+    res.json({ message: "Login successful", token });
+  });
+};
+
+// FORGOT PASSWORD (SEND OTP)
+export const forgotPassword = (req, res) => {
+  const { email } = req.body;
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  db.run("UPDATE users SET otp=? WHERE email=?", [otp, email], function () {
+    transporter.sendMail({
+      to: email,
+      subject: "Reset Password OTP",
+      text: `Your OTP is ${otp}`
+    });
+
+    res.json({ message: "OTP sent to email" });
+  });
+};
+
+// RESET PASSWORD
+export const resetPassword = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  const hashed = await bcrypt.hash(newPassword, 10);
+
+  db.get(
+    "SELECT * FROM users WHERE email=? AND otp=?",
+    [email, otp],
+    (err, user) => {
+      if (!user) return res.status(400).json({ error: "Invalid OTP" });
+
+      db.run(
+        "UPDATE users SET password=?, otp=NULL WHERE email=?",
+        [hashed, email]
+      );
+
+      res.json({ message: "Password reset successful" });
+    }
+  );
+};

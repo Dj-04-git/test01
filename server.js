@@ -48,6 +48,10 @@ app.get("/reset-password", (req, res) => {
     res.sendFile(path.join(__dirname, "pages", "reset-password.html"));
 });
 
+app.get("/dashboard", (req, res) => {
+  res.sendFile(path.join(__dirname, "pages", "dashboard.html"));
+});
+
 app.listen(5000, () => {
     console.log("Server running on port 5000");
 });
